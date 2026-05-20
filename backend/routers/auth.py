@@ -26,7 +26,7 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
     new_user = User(
         name=user.name,
         email=user.email,
-        hashed_password=pwd_context.hash(user.password),
+        hashed_password=pwd_context.hash(user.password[:72]),  # ✅ fixed
         school=user.school,
         student_class=user.student_class,
         father_name=user.father_name,
@@ -40,6 +40,6 @@ def register(user: UserRegister, db: Session = Depends(get_db)):
 @router.post("/login", response_model=Token)
 def login(user: UserLogin, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user.email).first()
-    if not db_user or not pwd_context.verify(user.password, db_user.hashed_password):
+    if not db_user or not pwd_context.verify(user.password[:72], db_user.hashed_password):  # ✅ fixed
         raise HTTPException(status_code=401, detail="Invalid email or password")
     return {"access_token": create_token(db_user.id, db_user.email), "token_type": "bearer"}
