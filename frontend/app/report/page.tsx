@@ -269,7 +269,7 @@ export default function ReportPage() {
               <BarChart data={riasecData} layout="vertical" margin={{ left:10, right:20 }}>
                 <XAxis type="number" domain={[0,100]} tick={{ fontSize:11, fill:"#94a3b8" }}/>
                 <YAxis type="category" dataKey="name" width={100} tick={{ fontSize:12, fill:"#64748b" }}/>
-                <Tooltip formatter={(v:number) => [`${v.toFixed(1)}%`,"Score"]}/>
+                <Tooltip formatter={(v: any) => [`${Number(v).toFixed(1)}%`, "Score"]} />
                 <Bar dataKey="score" radius={[0,8,8,0]}>
                   {riasecData.map((_,i) => <Cell key={i} fill={RIASEC_COLORS[i]}/>)}
                 </Bar>
