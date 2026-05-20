@@ -31,7 +31,7 @@ export default function RegisterPage() {
       localStorage.setItem("token", res.data.access_token);
       localStorage.setItem("user_name",  res.data.name  || form.name);
       localStorage.setItem("user_email", res.data.email || form.email);
-      router.push("/dashboard");
+      router.push("/test"); // ✅ fixed: redirect to test page
     } catch (err: any) {
       setError(err.response?.data?.detail || "Registration failed.");
     } finally { setLoading(false); }
