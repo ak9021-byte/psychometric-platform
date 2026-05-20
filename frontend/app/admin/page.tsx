@@ -89,7 +89,7 @@ export default function AdminPage() {
               <BarChart data={avgData} margin={{ bottom:40 }}>
                 <XAxis dataKey="name" tick={{ fontSize:11, fill:"#94a3b8" }} angle={-25} textAnchor="end" interval={0}/>
                 <YAxis domain={[0,100]} tick={{ fontSize:11, fill:"#94a3b8" }}/>
-                <Tooltip formatter={(v:number) => [`${v}%`,"Avg"]}/>
+                <Tooltip formatter={(v) => [`${v}%`, "Avg"]} />
                 <Bar dataKey="score" radius={[8,8,0,0]}>
                   {avgData.map((_,i) => <Cell key={i} fill={COLORS[i%COLORS.length]}/>)}
                 </Bar>
