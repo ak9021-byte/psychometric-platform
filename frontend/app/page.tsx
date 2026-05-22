@@ -37,7 +37,7 @@ export default function LoginPage() {
   ];
 
   const stats = [
-    { value: "30",              label: "Total Questions" },
+    { value: "70",              label: "Total Questions" },
     { value: "Intelligence",    label: "Types Measured" },
     { value: "Personality",     label: "Traits Measured" },
     { value: "100%",            label: "Always Free" },
