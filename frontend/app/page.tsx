@@ -30,7 +30,7 @@ export default function LoginPage() {
   };
 
   const features = [
-    { icon: "🧠", title: "30 Smart Questions",      desc: "Covering 8 intelligence types + 6 RIASEC personality dimensions" },
+    { icon: "🧠", title: "70 Smart Questions",      desc: "Covering 8 intelligence types + 6 RIASEC personality dimensions" },
     { icon: "📊", title: "Detailed Report & Charts", desc: "Radar charts, bar graphs, score breakdown with status badges" },
     { icon: "🎯", title: "Career Recommendations",   desc: "Personalized career path based on your unique psychometric profile" },
     { icon: "🔬", title: "Based on Science",         desc: "Howard Gardner's Multiple Intelligence + Holland's RIASEC theory" },
