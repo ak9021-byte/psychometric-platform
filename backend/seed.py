@@ -17,7 +17,7 @@ QUESTIONS = [
 
     {"text": "If a Train travels 60 km in 45 minutes, what is its speed in km/h?",
      "category": "logical_mathematical",
-     "option_a": "80 km/hr", "option_b": "75 km/h", "option_c": "90 km/h", "option_d": "70 km/h",
+     "option_a": "80 km/h", "option_b": "75 km/h", "option_c": "90 km/h", "option_d": "70 km/h",
      "score_map": json.dumps({"a": 4, "b": 0, "c": 0, "d": 0})},  # only 80 is correct
 
     {"text": "Which number comes next in the series: 2, 6, 12, 20, 30, ?",
@@ -58,7 +58,7 @@ QUESTIONS = [
 
     # ── INTERPERSONAL (8 questions) ──────────────────────────────────────────
 
-    {"text": "How easily do you make new friends?",
+    {"text": "How Easily do you make new friends?",
      "category": "interpersonal",
      "option_a": "Very easily", "option_b": "Easily", "option_c": "With some effort", "option_d": "With great difficulty",
      "score_map": json.dumps({"a": 4, "b": 2, "c": 1, "d": 0})},
