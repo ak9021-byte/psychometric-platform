@@ -209,15 +209,11 @@ export default function ReportPage() {
     if (result.top_careers && result.top_careers.length > 0) {
       return result.top_careers.slice(0, 5);
     }
-    // Fallback: wrap the single top_career string with 100% confidence.
-    // NOTE: Remove this block once backend returns top_careers[].
+    // Fallback: wrap the single top_career string with 100% confidence
     return result.top_career
       ? [{ career: result.top_career, confidence: 100 }]
       : [];
   })();
-
-  // Whether we are in "legacy" single-career mode (backend not yet updated)
-  const isLegacyMode = !result.top_careers || result.top_careers.length === 0;
 
   const completedDate = result.completed_at
     ? new Date(result.completed_at).toLocaleDateString("en-IN", { day:"numeric", month:"long", year:"numeric" })
@@ -320,21 +316,14 @@ export default function ReportPage() {
             <div style={{ display:"flex", justifyContent:"space-between", alignItems:"flex-start", marginBottom:24, flexWrap:"wrap", gap:8 }}>
               <div>
                 <h3 style={{ fontWeight:800, color:"#1e293b", fontSize:18, margin:"0 0 4px" }}>
-                  🏆 Top 5 Career Recommendations
+                  🏆 Top {topCareers.length} Career Recommendations
                 </h3>
                 <p style={{ color:"#94a3b8", fontSize:13, margin:0 }}>
                   Ranked by AI-predicted fit confidence based on your full psychometric profile
                 </p>
               </div>
-              <div style={{ display:"flex", gap:8, alignItems:"center", flexWrap:"wrap" }}>
-                {isLegacyMode && (
-                  <div style={{ background:"#fef9c3", border:"1.5px solid #fde047", borderRadius:10, padding:"6px 12px" }}>
-                    <span style={{ fontSize:11, fontWeight:700, color:"#92400e" }}>⚠️ UPDATE API FOR FULL 5</span>
-                  </div>
-                )}
-                <div style={{ background:"linear-gradient(135deg,#667eea15,#764ba215)", border:"1.5px solid #667eea30", borderRadius:10, padding:"6px 14px" }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:"#667eea" }}>AI POWERED RANKING</span>
-                </div>
+              <div style={{ background:"linear-gradient(135deg,#667eea15,#764ba215)", border:"1.5px solid #667eea30", borderRadius:10, padding:"6px 14px" }}>
+                <span style={{ fontSize:12, fontWeight:700, color:"#667eea" }}>AI POWERED RANKING</span>
               </div>
             </div>
 
@@ -447,32 +436,10 @@ export default function ReportPage() {
               })}
             </div>
 
-            {/* Ghost/placeholder cards when API is legacy (< 5 careers) */}
-            {isLegacyMode && (
-              <div style={{ display:"flex", flexDirection:"column", gap:14, marginTop:0 }}>
-                {[2,3,4,5].map((rank) => (
-                  <div key={rank} style={{ display:"flex", alignItems:"center", gap:18, padding:"16px 20px", borderRadius:16, background:"#f8fafc", border:"2px dashed #e2e8f0", opacity:0.6 }}>
-                    <div style={{ width:42, height:42, borderRadius:14, background:"#e2e8f0", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, fontSize:18, color:"#94a3b8" }}>
-                      {rank}
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
-                        <div style={{ height:14, width:"45%", background:"#e2e8f0", borderRadius:6 }}/>
-                        <div style={{ height:18, width:80, background:"#e2e8f0", borderRadius:20 }}/>
-                      </div>
-                      <div style={{ height:7, background:"#e2e8f0", borderRadius:99 }}/>
-                    </div>
-                    <div style={{ fontSize:12, color:"#94a3b8", fontWeight:600, whiteSpace:"nowrap" }}>Awaiting API</div>
-                  </div>
-                ))}
-              </div>
-            )}
-
             {/* Legend / note */}
             <div style={{ marginTop:18, padding:"12px 16px", background:"#f8fafc", borderRadius:10, border:"1px solid #e2e8f0" }}>
               <p style={{ margin:0, fontSize:12, color:"#64748b", lineHeight:1.6 }}>
                 <strong style={{ color:"#374151" }}>ℹ️ How confidence is calculated:</strong> The percentage reflects how strongly your combined Multiple Intelligence scores and RIASEC personality traits align with each career's typical professional profile.
-                {isLegacyMode && <><br/><span style={{ color:"#ca8a04" }}>⚠️ Your backend currently returns only 1 career. Return <code>top_careers[]</code> from the API to unlock all 5 ranked results.</span></>}
               </p>
             </div>
           </div>
