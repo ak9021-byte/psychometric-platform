@@ -10,11 +10,19 @@ import {
 type float = number;
 
 // ── Top Career Entry (new format from API) ───────────────────────────────────
-type TopCareerEntry = {
-  career: string;
-  confidence: float; // 0–100
-};
-
+// Change this:
+const topCareers = (() => {
+  const raw = (result as any).top_5_careers || result.top_careers || [];
+  if (raw.length > 0) {
+    return raw.slice(0, 5).map((c: any) => ({
+      career: c.title || c.career || "",
+      confidence: c.confidence || 0,
+    }));
+  }
+  return result.top_career
+    ? [{ career: result.top_career, confidence: 95 }]
+    : [];
+})();
 type Result = {
   user: {
     name: string; email: string;
@@ -34,6 +42,7 @@ type Result = {
   // Support both old (single string) and new (array) formats
   top_career:  string;
   top_careers?: TopCareerEntry[];
+  top_5_careers?: any[];  
   completed_at: string;
 };
 
