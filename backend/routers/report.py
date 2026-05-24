@@ -109,7 +109,9 @@ def download_pdf(
     W = A4[0] - 40*mm
 
     # Header
-    logo_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "logo.png")
+    logo_path = os.path.join(os.path.dirname(__file__), "..", "static", "logo.png")
+    if not os.path.exists(logo_path):
+        logo_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "logo.png")
     if os.path.exists(logo_path):
         logo = RLImage(logo_path, width=38*mm, height=18*mm)
         hd = Table([[logo, Paragraph("Psychometric Assessment Report", title_s), ""]], colWidths=[42*mm, W-84*mm, 42*mm])
