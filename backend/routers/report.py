@@ -47,7 +47,7 @@ def get_my_result(
             "conventional":  round(result.riasec_conventional, 2),
         },
         "top_career":          result.top_career,
-        "top_5_careers":       result.top_5_careers or [],
+        "top_careers":         result.top_5_careers or [],   # ← renamed to top_careers for frontend
         "personality_clarity": result.personality_clarity or "Moderately Defined",
         "trait_variance":      result.trait_variance or 0,
         "completed_at":        str(result.completed_at) if result.completed_at else "",
@@ -108,67 +108,117 @@ def download_pdf(
     story = []
     W = A4[0] - 40*mm
 
-    # Header
+    # ── Header ──────────────────────────────────────────────────────────────
     logo_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "logo.png")
     if os.path.exists(logo_path):
         logo = RLImage(logo_path, width=38*mm, height=18*mm)
         hd = Table([[logo, Paragraph("Psychometric Assessment Report", title_s), ""]], colWidths=[42*mm, W-84*mm, 42*mm])
     else:
         hd = Table([[Paragraph("Knowletive", title_s), Paragraph("Psychometric Assessment Report", title_s)]], colWidths=[W/2, W/2])
-    hd.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),PRIMARY),("ALIGN",(0,0),(-1,-1),"CENTER"),("VALIGN",(0,0),(-1,-1),"MIDDLE"),("TOPPADDING",(0,0),(-1,-1),14),("BOTTOMPADDING",(0,0),(-1,-1),14)]))
+    hd.setStyle(TableStyle([
+        ("BACKGROUND", (0,0), (-1,-1), PRIMARY),
+        ("ALIGN",      (0,0), (-1,-1), "CENTER"),
+        ("VALIGN",     (0,0), (-1,-1), "MIDDLE"),
+        ("TOPPADDING", (0,0), (-1,-1), 14),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 14),
+    ]))
     story.append(hd)
 
     tg = Table([[Paragraph("Knowletive  |  Training Minds, Placing Talents", sub_s)]], colWidths=[W])
-    tg.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),SECONDARY),("TOPPADDING",(0,0),(-1,-1),5),("BOTTOMPADDING",(0,0),(-1,-1),5)]))
+    tg.setStyle(TableStyle([
+        ("BACKGROUND",    (0,0), (-1,-1), SECONDARY),
+        ("TOPPADDING",    (0,0), (-1,-1), 5),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 5),
+    ]))
     story.append(tg)
     story.append(Spacer(1, 8*mm))
 
-    # Student info
+    # ── Student Info ─────────────────────────────────────────────────────────
     story.append(Paragraph("Student Information", sec_s))
     story.append(HRFlowable(width=W, thickness=1, color=PRIMARY, spaceAfter=5))
     completed_str = result.completed_at.strftime("%d %B %Y") if result.completed_at else "—"
     info_rows = [
-        [Paragraph("<b>Name</b>", lbl_s), Paragraph(current_user.name or "—", val_s), Paragraph("<b>Email</b>", lbl_s), Paragraph(current_user.email or "—", val_s)],
-        [Paragraph("<b>School</b>", lbl_s), Paragraph(current_user.school or "—", val_s), Paragraph("<b>Class</b>", lbl_s), Paragraph(current_user.student_class or "—", val_s)],
-        [Paragraph("<b>Father's Name</b>", lbl_s), Paragraph(current_user.father_name or "—", val_s), Paragraph("<b>Mother's Name</b>", lbl_s), Paragraph(current_user.mother_name or "—", val_s)],
-        [Paragraph("<b>Completed On</b>", lbl_s), Paragraph(completed_str, val_s), "", ""],
+        [Paragraph("<b>Name</b>", lbl_s),         Paragraph(current_user.name or "—", val_s),
+         Paragraph("<b>Email</b>", lbl_s),         Paragraph(current_user.email or "—", val_s)],
+        [Paragraph("<b>School</b>", lbl_s),        Paragraph(current_user.school or "—", val_s),
+         Paragraph("<b>Class</b>", lbl_s),         Paragraph(current_user.student_class or "—", val_s)],
+        [Paragraph("<b>Father's Name</b>", lbl_s), Paragraph(current_user.father_name or "—", val_s),
+         Paragraph("<b>Mother's Name</b>", lbl_s), Paragraph(current_user.mother_name or "—", val_s)],
+        [Paragraph("<b>Completed On</b>", lbl_s),  Paragraph(completed_str, val_s), "", ""],
     ]
     it = Table(info_rows, colWidths=[38*mm, 57*mm, 38*mm, 37*mm])
-    it.setStyle(TableStyle([("ROWBACKGROUNDS",(0,0),(-1,-1),[WHITE,LGRAY]),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),("LEFTPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#e2e8f0")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
+    it.setStyle(TableStyle([
+        ("ROWBACKGROUNDS", (0,0), (-1,-1), [WHITE, LGRAY]),
+        ("TOPPADDING",     (0,0), (-1,-1), 7),
+        ("BOTTOMPADDING",  (0,0), (-1,-1), 7),
+        ("LEFTPADDING",    (0,0), (-1,-1), 8),
+        ("GRID",           (0,0), (-1,-1), 0.3, colors.HexColor("#e2e8f0")),
+        ("VALIGN",         (0,0), (-1,-1), "MIDDLE"),
+    ]))
     story.append(it)
     story.append(Spacer(1, 8*mm))
 
-    # Career banner
+    # ── Career Banner ────────────────────────────────────────────────────────
     career_rows = [
         [Paragraph("RECOMMENDED CAREER PATH", sub_s)],
         [Paragraph(result.top_career or "—", car_s)],
         [Paragraph(f"Personality: {result.personality_clarity or 'Moderately Defined'}", sub_s)],
     ]
     ct = Table(career_rows, colWidths=[W])
-    ct.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),PRIMARY),("ALIGN",(0,0),(-1,-1),"CENTER"),("TOPPADDING",(0,0),(-1,-1),10),("BOTTOMPADDING",(0,0),(-1,-1),10)]))
+    ct.setStyle(TableStyle([
+        ("BACKGROUND",    (0,0), (-1,-1), PRIMARY),
+        ("ALIGN",         (0,0), (-1,-1), "CENTER"),
+        ("TOPPADDING",    (0,0), (-1,-1), 10),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 10),
+    ]))
     story.append(ct)
     story.append(Spacer(1, 6*mm))
 
-    # Top 5 careers with confidence
-    if result.top_5_careers:
+    # ── Top 5 Careers ────────────────────────────────────────────────────────
+    # ✅ FIX: use "career" key (matches scoring service output)
+    #         fallback to "title" for backward compatibility
+    top5 = result.top_5_careers or []
+    if top5:
         story.append(Paragraph("Top 5 Career Matches with Confidence Score", sec_s))
         story.append(HRFlowable(width=W, thickness=1, color=PRIMARY, spaceAfter=5))
-        conf_header = [[Paragraph("<b>Rank</b>", lbl_s), Paragraph("<b>Career</b>", lbl_s), Paragraph("<b>Match %</b>", rt_s)]]
-        conf_rows = conf_header
-        for i, c in enumerate(result.top_5_careers, 1):
+
+        rank_labels = ["🥇 Best Fit", "🥈 Great Fit", "🥉 Strong Fit", "#4", "#5"]
+        conf_rows = [[
+            Paragraph("<b>Rank</b>",       lbl_s),
+            Paragraph("<b>Career</b>",     lbl_s),
+            Paragraph("<b>Confidence</b>", rt_s),
+        ]]
+        for i, c in enumerate(top5[:5]):
+            # ✅ KEY FIX: "career" first, fallback to "title"
+            career_name = c.get("career") or c.get("title") or "—"
+            confidence  = c.get("confidence", 0)
             conf_rows.append([
-                Paragraph(f"#{i}", val_s),
-                Paragraph(c.get("title", ""), val_s),
-                Paragraph(f"<b>{c.get('confidence', 0):.1f}%</b>", rt_s),
+                Paragraph(rank_labels[i] if i < len(rank_labels) else f"#{i+1}", val_s),
+                Paragraph(career_name, val_s),
+                Paragraph(f"<b>{float(confidence):.1f}%</b>", rt_s),
             ])
-        conf_t = Table(conf_rows, colWidths=[15*mm, 130*mm, 25*mm])
-        conf_t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),PRIMARY),("TEXTCOLOR",(0,0),(-1,0),WHITE),("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,LGRAY]),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),("LEFTPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#e2e8f0")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
+
+        conf_t = Table(conf_rows, colWidths=[28*mm, 117*mm, 25*mm])
+        conf_t.setStyle(TableStyle([
+            ("BACKGROUND",    (0,0), (-1,0),  PRIMARY),
+            ("TEXTCOLOR",     (0,0), (-1,0),  WHITE),
+            ("ROWBACKGROUNDS",(0,1), (-1,-1), [WHITE, LGRAY]),
+            ("TOPPADDING",    (0,0), (-1,-1), 8),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 8),
+            ("LEFTPADDING",   (0,0), (-1,-1), 8),
+            ("GRID",          (0,0), (-1,-1), 0.3, colors.HexColor("#e2e8f0")),
+            ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
+            # Highlight top career row
+            ("BACKGROUND",    (0,1), (-1,1),  colors.HexColor("#667eea15")),
+            ("FONTNAME",      (0,1), (-1,1),  "Helvetica-Bold"),
+        ]))
         story.append(conf_t)
         story.append(Spacer(1, 6*mm))
 
-    # Intelligence scores
+    # ── Intelligence Scores ──────────────────────────────────────────────────
     story.append(Paragraph("Multiple Intelligence Scores  (Gardner's Theory)", sec_s))
     story.append(HRFlowable(width=W, thickness=1, color=PRIMARY, spaceAfter=5))
+
     intel_items = [
         ("Logical-Mathematical", result.logical_mathematical),
         ("Interpersonal",        result.interpersonal),
@@ -188,23 +238,49 @@ def download_pdf(
         return               "Needs Work", RED
 
     def bar_t(score):
-        f = max(1, int((score/100)*85)); e = 85-f
-        b = Table([["",""]], colWidths=[f*mm*0.38, e*mm*0.38])
-        b.setStyle(TableStyle([("BACKGROUND",(0,0),(0,0),PRIMARY),("BACKGROUND",(1,0),(1,0),colors.HexColor("#e2e8f0")),("TOPPADDING",(0,0),(-1,-1),4),("BOTTOMPADDING",(0,0),(-1,-1),4)]))
+        f = max(1, int((score / 100) * 85))
+        e = 85 - f
+        b = Table([["", ""]], colWidths=[f*mm*0.38, e*mm*0.38])
+        b.setStyle(TableStyle([
+            ("BACKGROUND",    (0,0), (0,0), PRIMARY),
+            ("BACKGROUND",    (1,0), (1,0), colors.HexColor("#e2e8f0")),
+            ("TOPPADDING",    (0,0), (-1,-1), 4),
+            ("BOTTOMPADDING", (0,0), (-1,-1), 4),
+        ]))
         return b
 
-    intel_rows = [[Paragraph("<b>Intelligence Type</b>",lbl_s), Paragraph("<b>Score Bar</b>",lbl_s), Paragraph("<b>Score</b>",rt_s), Paragraph("<b>Status</b>",lbl_s)]]
+    intel_rows = [[
+        Paragraph("<b>Intelligence Type</b>", lbl_s),
+        Paragraph("<b>Score Bar</b>",         lbl_s),
+        Paragraph("<b>Score</b>",             rt_s),
+        Paragraph("<b>Status</b>",            lbl_s),
+    ]]
     for name, score in intel_items:
         sl, sc = get_status(score)
-        intel_rows.append([Paragraph(name,val_s), bar_t(score), Paragraph(f"<b>{score:.0f}%</b>",rt_s), Paragraph(f"<b>{sl}</b>", ParagraphStyle("st",fontSize=9,fontName="Helvetica-Bold",textColor=sc))])
+        intel_rows.append([
+            Paragraph(name, val_s),
+            bar_t(score),
+            Paragraph(f"<b>{score:.0f}%</b>", rt_s),
+            Paragraph(f"<b>{sl}</b>", ParagraphStyle("st", fontSize=9, fontName="Helvetica-Bold", textColor=sc)),
+        ])
     ilt = Table(intel_rows, colWidths=[48*mm, 72*mm, 18*mm, 32*mm])
-    ilt.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),PRIMARY),("TEXTCOLOR",(0,0),(-1,0),WHITE),("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,LGRAY]),("TOPPADDING",(0,0),(-1,-1),6),("BOTTOMPADDING",(0,0),(-1,-1),6),("LEFTPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#e2e8f0")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
+    ilt.setStyle(TableStyle([
+        ("BACKGROUND",    (0,0), (-1,0),  PRIMARY),
+        ("TEXTCOLOR",     (0,0), (-1,0),  WHITE),
+        ("ROWBACKGROUNDS",(0,1), (-1,-1), [WHITE, LGRAY]),
+        ("TOPPADDING",    (0,0), (-1,-1), 6),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 6),
+        ("LEFTPADDING",   (0,0), (-1,-1), 8),
+        ("GRID",          (0,0), (-1,-1), 0.3, colors.HexColor("#e2e8f0")),
+        ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
+    ]))
     story.append(ilt)
     story.append(Spacer(1, 6*mm))
 
-    # RIASEC scores
+    # ── RIASEC Scores ────────────────────────────────────────────────────────
     story.append(Paragraph("RIASEC Personality Profile  (Holland's Theory)", sec_s))
     story.append(HRFlowable(width=W, thickness=1, color=SECONDARY, spaceAfter=5))
+
     riasec_items = [
         ("Realistic",     "The Doers",      result.riasec_realistic),
         ("Investigative", "The Thinkers",   result.riasec_investigative),
@@ -221,21 +297,55 @@ def download_pdf(
         if s > 40: return "Avg Dominant",    ORANGE
         return               "Less Dominant",  GRAY
 
-    riasec_rows = [[Paragraph("<b>Type</b>",lbl_s), Paragraph("<b>Description</b>",lbl_s), Paragraph("<b>Score</b>",rt_s), Paragraph("<b>Status</b>",lbl_s)]]
+    riasec_rows = [[
+        Paragraph("<b>Type</b>",        lbl_s),
+        Paragraph("<b>Description</b>", lbl_s),
+        Paragraph("<b>Score</b>",       rt_s),
+        Paragraph("<b>Status</b>",      lbl_s),
+    ]]
     for name, desc, score in riasec_items:
         sl, sc = get_rs(score)
-        riasec_rows.append([Paragraph(f"<b>{name}</b>",lbl_s), Paragraph(desc,val_s), Paragraph(f"<b>{score:.1f}%</b>",rt_s), Paragraph(f"<b>{sl}</b>", ParagraphStyle("rs",fontSize=9,fontName="Helvetica-Bold",textColor=sc))])
+        riasec_rows.append([
+            Paragraph(f"<b>{name}</b>", lbl_s),
+            Paragraph(desc, val_s),
+            Paragraph(f"<b>{score:.1f}%</b>", rt_s),
+            Paragraph(f"<b>{sl}</b>", ParagraphStyle("rs", fontSize=9, fontName="Helvetica-Bold", textColor=sc)),
+        ])
     rt = Table(riasec_rows, colWidths=[38*mm, 68*mm, 22*mm, 42*mm])
-    rt.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),SECONDARY),("TEXTCOLOR",(0,0),(-1,0),WHITE),("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,LGRAY]),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),("LEFTPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#e2e8f0")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
+    rt.setStyle(TableStyle([
+        ("BACKGROUND",    (0,0), (-1,0),  SECONDARY),
+        ("TEXTCOLOR",     (0,0), (-1,0),  WHITE),
+        ("ROWBACKGROUNDS",(0,1), (-1,-1), [WHITE, LGRAY]),
+        ("TOPPADDING",    (0,0), (-1,-1), 7),
+        ("BOTTOMPADDING", (0,0), (-1,-1), 7),
+        ("LEFTPADDING",   (0,0), (-1,-1), 8),
+        ("GRID",          (0,0), (-1,-1), 0.3, colors.HexColor("#e2e8f0")),
+        ("VALIGN",        (0,0), (-1,-1), "MIDDLE"),
+    ]))
     story.append(rt)
     story.append(Spacer(1, 8*mm))
 
-    # Footer
-    ft = Table([[Paragraph("© Knowletive — Training Minds, Placing Talents", sm_s), Paragraph("Confidential Psychometric Report", ParagraphStyle("fr",fontSize=9,fontName="Helvetica",textColor=GRAY,alignment=TA_RIGHT))]], colWidths=[W/2, W/2])
-    ft.setStyle(TableStyle([("TOPPADDING",(0,0),(-1,-1),8),("LINEABOVE",(0,0),(-1,-1),0.5,colors.HexColor("#e2e8f0"))]))
+    # ── Footer ───────────────────────────────────────────────────────────────
+    ft = Table([[
+        Paragraph("© Knowletive — Training Minds, Placing Talents", sm_s),
+        Paragraph("Confidential Psychometric Report", ParagraphStyle("fr", fontSize=9, fontName="Helvetica", textColor=GRAY, alignment=TA_RIGHT)),
+    ]], colWidths=[W/2, W/2])
+    ft.setStyle(TableStyle([
+        ("TOPPADDING", (0,0), (-1,-1), 8),
+        ("LINEABOVE",  (0,0), (-1,-1), 0.5, colors.HexColor("#e2e8f0")),
+    ]))
     story.append(ft)
 
-    doc.build(story)
+    # ✅ FIX: wrap doc.build in try/except so errors are visible, not silent
+    try:
+        doc.build(story)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
+
     buffer.seek(0)
     safe_name = (current_user.name or "student").replace(" ", "_")
-    return StreamingResponse(buffer, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=psychometric_report_{safe_name}.pdf"})
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=psychometric_report_{safe_name}.pdf"},
+    )
