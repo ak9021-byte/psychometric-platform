@@ -72,6 +72,17 @@ def download_pdf(
     if not result:
         raise HTTPException(status_code=404, detail="No result found.")
 
+    # Fix top_5_careers — may be stored as JSON string
+    import json
+    top_5 = result.top_5_careers
+    if isinstance(top_5, str):
+        try:
+            top_5 = json.loads(top_5)
+        except Exception:
+            top_5 = []
+    if not isinstance(top_5, list):
+        top_5 = []
+
     try:
         from reportlab.lib.pagesizes import A4
         from reportlab.lib import colors
@@ -108,15 +119,17 @@ def download_pdf(
     story = []
     W = A4[0] - 40*mm
 
-    # Header
+    # Header — skip logo if not found, don't crash
     logo_path = os.path.join(os.path.dirname(__file__), "..", "static", "logo.png")
     if not os.path.exists(logo_path):
         logo_path = os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "public", "logo.png")
+
     if os.path.exists(logo_path):
         logo = RLImage(logo_path, width=38*mm, height=18*mm)
         hd = Table([[logo, Paragraph("Psychometric Assessment Report", title_s), ""]], colWidths=[42*mm, W-84*mm, 42*mm])
     else:
         hd = Table([[Paragraph("Knowletive", title_s), Paragraph("Psychometric Assessment Report", title_s)]], colWidths=[W/2, W/2])
+
     hd.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,-1),PRIMARY),("ALIGN",(0,0),(-1,-1),"CENTER"),("VALIGN",(0,0),(-1,-1),"MIDDLE"),("TOPPADDING",(0,0),(-1,-1),14),("BOTTOMPADDING",(0,0),(-1,-1),14)]))
     story.append(hd)
 
@@ -151,17 +164,23 @@ def download_pdf(
     story.append(ct)
     story.append(Spacer(1, 6*mm))
 
-    # Top 5 careers with confidence
-    if result.top_5_careers:
+    # Top 5 careers — use fixed top_5 variable
+    if top_5:
         story.append(Paragraph("Top 5 Career Matches with Confidence Score", sec_s))
         story.append(HRFlowable(width=W, thickness=1, color=PRIMARY, spaceAfter=5))
-        conf_header = [[Paragraph("<b>Rank</b>", lbl_s), Paragraph("<b>Career</b>", lbl_s), Paragraph("<b>Match %</b>", rt_s)]]
-        conf_rows = conf_header
-        for i, c in enumerate(result.top_5_careers, 1):
+        conf_rows = [[Paragraph("<b>Rank</b>", lbl_s), Paragraph("<b>Career</b>", lbl_s), Paragraph("<b>Match %</b>", rt_s)]]
+        for i, c in enumerate(top_5, 1):
+            # c could be a dict or string, handle both
+            if isinstance(c, dict):
+                title = c.get("title", str(c))
+                confidence = float(c.get("confidence", 0))
+            else:
+                title = str(c)
+                confidence = 0.0
             conf_rows.append([
                 Paragraph(f"#{i}", val_s),
-                Paragraph(c.get("title", ""), val_s),
-                Paragraph(f"<b>{c.get('confidence', 0):.1f}%</b>", rt_s),
+                Paragraph(title, val_s),
+                Paragraph(f"<b>{confidence:.1f}%</b>", rt_s),
             ])
         conf_t = Table(conf_rows, colWidths=[15*mm, 130*mm, 25*mm])
         conf_t.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),PRIMARY),("TEXTCOLOR",(0,0),(-1,0),WHITE),("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,LGRAY]),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),("LEFTPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#e2e8f0")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
@@ -172,14 +191,14 @@ def download_pdf(
     story.append(Paragraph("Multiple Intelligence Scores  (Gardner's Theory)", sec_s))
     story.append(HRFlowable(width=W, thickness=1, color=PRIMARY, spaceAfter=5))
     intel_items = [
-        ("Logical-Mathematical", result.logical_mathematical),
-        ("Interpersonal",        result.interpersonal),
-        ("Bodily-Kinesthetic",   result.bodily_kinesthetic),
-        ("Verbal-Linguistic",    result.verbal_linguistic),
-        ("Musical",              result.musical),
-        ("Naturalist",           result.naturalist),
-        ("Spatial-Visual",       result.spatial_visual),
-        ("Intrapersonal",        result.intrapersonal),
+        ("Logical-Mathematical", result.logical_mathematical or 0),
+        ("Interpersonal",        result.interpersonal or 0),
+        ("Bodily-Kinesthetic",   result.bodily_kinesthetic or 0),
+        ("Verbal-Linguistic",    result.verbal_linguistic or 0),
+        ("Musical",              result.musical or 0),
+        ("Naturalist",           result.naturalist or 0),
+        ("Spatial-Visual",       result.spatial_visual or 0),
+        ("Intrapersonal",        result.intrapersonal or 0),
     ]
     intel_items.sort(key=lambda x: x[1], reverse=True)
 
@@ -208,12 +227,12 @@ def download_pdf(
     story.append(Paragraph("RIASEC Personality Profile  (Holland's Theory)", sec_s))
     story.append(HRFlowable(width=W, thickness=1, color=SECONDARY, spaceAfter=5))
     riasec_items = [
-        ("Realistic",     "The Doers",      result.riasec_realistic),
-        ("Investigative", "The Thinkers",   result.riasec_investigative),
-        ("Artistic",      "The Creators",   result.riasec_artistic),
-        ("Social",        "The Helpers",    result.riasec_social),
-        ("Enterprising",  "The Persuaders", result.riasec_enterprising),
-        ("Conventional",  "The Organizers", result.riasec_conventional),
+        ("Realistic",     "The Doers",      result.riasec_realistic or 0),
+        ("Investigative", "The Thinkers",   result.riasec_investigative or 0),
+        ("Artistic",      "The Creators",   result.riasec_artistic or 0),
+        ("Social",        "The Helpers",    result.riasec_social or 0),
+        ("Enterprising",  "The Persuaders", result.riasec_enterprising or 0),
+        ("Conventional",  "The Organizers", result.riasec_conventional or 0),
     ]
     riasec_items.sort(key=lambda x: x[2], reverse=True)
 
@@ -227,9 +246,9 @@ def download_pdf(
     for name, desc, score in riasec_items:
         sl, sc = get_rs(score)
         riasec_rows.append([Paragraph(f"<b>{name}</b>",lbl_s), Paragraph(desc,val_s), Paragraph(f"<b>{score:.1f}%</b>",rt_s), Paragraph(f"<b>{sl}</b>", ParagraphStyle("rs",fontSize=9,fontName="Helvetica-Bold",textColor=sc))])
-    rt = Table(riasec_rows, colWidths=[38*mm, 68*mm, 22*mm, 42*mm])
-    rt.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),SECONDARY),("TEXTCOLOR",(0,0),(-1,0),WHITE),("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,LGRAY]),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),("LEFTPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#e2e8f0")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
-    story.append(rt)
+    rt2 = Table(riasec_rows, colWidths=[38*mm, 68*mm, 22*mm, 42*mm])
+    rt2.setStyle(TableStyle([("BACKGROUND",(0,0),(-1,0),SECONDARY),("TEXTCOLOR",(0,0),(-1,0),WHITE),("ROWBACKGROUNDS",(0,1),(-1,-1),[WHITE,LGRAY]),("TOPPADDING",(0,0),(-1,-1),7),("BOTTOMPADDING",(0,0),(-1,-1),7),("LEFTPADDING",(0,0),(-1,-1),8),("GRID",(0,0),(-1,-1),0.3,colors.HexColor("#e2e8f0")),("VALIGN",(0,0),(-1,-1),"MIDDLE")]))
+    story.append(rt2)
     story.append(Spacer(1, 8*mm))
 
     # Footer
@@ -237,7 +256,16 @@ def download_pdf(
     ft.setStyle(TableStyle([("TOPPADDING",(0,0),(-1,-1),8),("LINEABOVE",(0,0),(-1,-1),0.5,colors.HexColor("#e2e8f0"))]))
     story.append(ft)
 
-    doc.build(story)
+    # Build with error detail
+    try:
+        doc.build(story)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"PDF build failed: {str(e)}")
+
     buffer.seek(0)
     safe_name = (current_user.name or "student").replace(" ", "_")
-    return StreamingResponse(buffer, media_type="application/pdf", headers={"Content-Disposition": f"attachment; filename=psychometric_report_{safe_name}.pdf"})
+    return StreamingResponse(
+        buffer,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=psychometric_report_{safe_name}.pdf"}
+    )
